@@ -6,13 +6,13 @@
 /*   By: schetty <schetty@student.42kl.edu.my>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/04 16:51:21 by schetty           #+#    #+#             */
-/*   Updated: 2021/10/08 23:41:44 by schetty          ###   ########.fr       */
+/*   Updated: 2021/10/09 11:08:32 by schetty          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-void	sighandler(int signum)
+static void	sighandler(int signum)
 {
 	static int	count = 0;
 
@@ -20,12 +20,12 @@ void	sighandler(int signum)
 		count++;
 	else
 	{
-		ft_printf("  \033[0;34m%d Received\033[0m\n", ++count);
+		ft_printf("  \033[0;34m%d Received\033[0m\n\n", count);
 		exit(0);
 	}
 }
 
-void	send_bit(int pid, char chr)
+static void	send_bit(int pid, char chr)
 {
 	int	bit;
 
@@ -36,37 +36,31 @@ void	send_bit(int pid, char chr)
 			kill(pid, SIGUSR2);
 		else
 			kill(pid, SIGUSR1);
-		usleep(1500);
+		usleep(100);
 	}
 }
 
-void	send_message(int pid, char *str)
+static void	send_message(int pid, char *str)
 {
 	while (*str)
 		send_bit(pid, *str++);
 	send_bit(pid, 0);
 }
 
-static int	is_valid(int argc, char **argv)
-{
-	if (argc != 3)
-		return (error_message(1, 0));
-	else if (!is_numeric(argv[1]))
-		return (error_message(2, 0));
-	else if (!ft_strlen(argv[2]))
-		return (error_message(3, 0));
-	else
-		return (0);
-}
-
 int	main(int argc, char **argv)
 {
 	int	ret;
 
-	ret = is_valid(argc, argv);
+	ret = 0;
+	if (argc != 3)
+		ret = (error_message(1, 0));
+	else if (!is_numeric(argv[1]))
+		ret = (error_message(2, 0));
+	else if (!ft_strlen(argv[2]))
+		ret = (error_message(3, 0));
 	if (!ret)
 	{
-		ft_printf("\nSignal: \033[0;32m%d Sent", (ft_strlen(argv[2]) + 1) * 8);
+		ft_printf("\n\033[0;32m%d Sent", ft_strlen(argv[2]));
 		signal(SIGUSR1, sighandler);
 		signal(SIGUSR2, sighandler);
 		send_message(ft_atoi(argv[1]), argv[2]);
